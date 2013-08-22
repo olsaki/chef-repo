@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+BIN_RVM=`which rvm`
+if [ -z $BIN_RVM ]; then
+  BIN_CURL=`which curl`
+  if [ -z $BIN_CURL ]; then
+    echo "curl not found. Install curl to continue."
+  else
+    echo "Using $BIN_CURL"
+  fi
+  $BIN_CURL -L get.rvm.io | bash -s stable --auto
+  source /etc/profile.d/rvm.sh
+  BIN_RVM=`which rvm`
+  sudo usermod -a -G rvm $CURRENT_USER
+  rvm --quiet-curl --summary requirements
+  rvm --quiet-curl --summary install 1.9.3
+  rvm --default use 1.9.3
+  if [ -w $HOME/.bash_profile ]; then
+    echo "source /etc/profile.d/rvm.sh" >> $HOME/.bash_profile
+  elif [ -w $HOME/.bash_profile ]; then
+    echo "source /etc/profile.d/rvm.sh" >> $HOME/.profile
+  else
+  echo "No writable profile file found. Make sure to 'source /etc/profile.d/rvm.sh' in your login profile to have RVM available."
+  fi
+fi
+
+echo "Using $BIN_RVM as rvm"
+echo "Using $(rvm current) as RVM environment"
+gem install bundler --no-ri --no-rdoc
+
+BIN_BUNDLE=`which bundle`
+echo "Using $BIN_BUNDLE as bundler"
+
+bundle install
+
+berks install --path cookbooks
